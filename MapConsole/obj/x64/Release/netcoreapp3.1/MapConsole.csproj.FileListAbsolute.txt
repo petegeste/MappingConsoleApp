@@ -1,0 +1,11 @@
+C:\Users\peter.gestewitz\source\repos\MapApp\MapConsole\bin\x64\Release\netcoreapp3.1\MapConsole.exe
+C:\Users\peter.gestewitz\source\repos\MapApp\MapConsole\bin\x64\Release\netcoreapp3.1\MapConsole.deps.json
+C:\Users\peter.gestewitz\source\repos\MapApp\MapConsole\bin\x64\Release\netcoreapp3.1\MapConsole.runtimeconfig.json
+C:\Users\peter.gestewitz\source\repos\MapApp\MapConsole\bin\x64\Release\netcoreapp3.1\MapConsole.runtimeconfig.dev.json
+C:\Users\peter.gestewitz\source\repos\MapApp\MapConsole\bin\x64\Release\netcoreapp3.1\MapConsole.dll
+C:\Users\peter.gestewitz\source\repos\MapApp\MapConsole\bin\x64\Release\netcoreapp3.1\MapConsole.pdb
+C:\Users\peter.gestewitz\source\repos\MapApp\MapConsole\obj\x64\Release\netcoreapp3.1\MapConsole.csprojAssemblyReference.cache
+C:\Users\peter.gestewitz\source\repos\MapApp\MapConsole\obj\x64\Release\netcoreapp3.1\MapConsole.AssemblyInfoInputs.cache
+C:\Users\peter.gestewitz\source\repos\MapApp\MapConsole\obj\x64\Release\netcoreapp3.1\MapConsole.AssemblyInfo.cs
+C:\Users\peter.gestewitz\source\repos\MapApp\MapConsole\obj\x64\Release\netcoreapp3.1\MapConsole.dll
+C:\Users\peter.gestewitz\source\repos\MapApp\MapConsole\obj\x64\Release\netcoreapp3.1\MapConsole.pdb

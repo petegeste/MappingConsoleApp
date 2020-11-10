@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29613.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapConsole", "MapConsole\MapConsole.csproj", "{7CE2A301-4F06-4E84-BD2F-813EACF7AFCD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7CE2A301-4F06-4E84-BD2F-813EACF7AFCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CE2A301-4F06-4E84-BD2F-813EACF7AFCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CE2A301-4F06-4E84-BD2F-813EACF7AFCD}.Release|Any CPU.ActiveCfg = Release|x64
+		{7CE2A301-4F06-4E84-BD2F-813EACF7AFCD}.Release|Any CPU.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7C8325AF-0204-4C8F-A1D3-D6BF4A04184C}
+	EndGlobalSection
+EndGlobal
