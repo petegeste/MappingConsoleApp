@@ -3,7 +3,7 @@ An application that uses a brute-force approach to navigate between waypoints in
 
 This project was written in an afternoon for CS416 at UNH. I was suddenly inspired to create a mapping application, so here it is!
 
-**Using this application requires OSM map data from [OpenStreetMap](https://www.openstreetmap.org/).**
+**Using this application requires OSM map data from [OpenStreetMap](https://www.openstreetmap.org/). Export the area you plan to navigate so you can use it as input to the program.**
 
 
 Steps performed by program:
