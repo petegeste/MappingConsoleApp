@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -8,7 +7,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using System.Xml.XPath;
-using System.Text.RegularExpressions;
 
 
 /* 
@@ -39,11 +37,23 @@ namespace MapApp
         public void RunProgram()
         {
             ParseOSM();
-            if (!GetCoords(out Intersection start, out Intersection end))
+
+            while(true)
             {
-                return;
+                if (!GetCoords(out Intersection start, out Intersection end))
+                {
+                    return;
+                }
+                Navigate(start, end);
+
+                Console.WriteLine("Do another? (y/n): ");
+                if (Console.ReadKey().Key != ConsoleKey.Y)
+                {
+                    break;
+                }
             }
-            Navigate(start, end);
+
+            Console.WriteLine("Bye! Thanks!");
         }
 
         private bool GetCoords(out Intersection start, out Intersection end)
@@ -82,11 +92,10 @@ namespace MapApp
             coordinates = new StreamWriter(File.Create(@"WaypointCoords.csv"));
             foreach (var i in intersections)
             {
-                Console.WriteLine($"{i.Location.Latitude}, {i.Location.Longitude} {i.Location.AssociatedWay.RoadName}");
+                Console.WriteLine($"{i.Location.Latitude}, {i.Location.Longitude} {i.Location.AssociatedWay?.RoadName ?? "IDK-the-road"}");
                 coordinates.WriteLine($"{i.Location.Latitude},{i.Location.Longitude}");
             }
             coordinates.Close();
-            Console.ReadKey();
         }
 
         private string[] GetMatches(Match matches)
