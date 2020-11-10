@@ -38,7 +38,7 @@ namespace MapApp
         {
             ParseOSM();
 
-            while(true)
+            while (true)
             {
                 if (!GetCoords(out Intersection start, out Intersection end))
                 {
@@ -51,6 +51,7 @@ namespace MapApp
                 {
                     break;
                 }
+                Cleanup();
             }
 
             Console.WriteLine("Bye! Thanks!");
@@ -84,12 +85,12 @@ namespace MapApp
             Console.WriteLine("\nGetting directions...");
             var stopwatch = Stopwatch.StartNew();
             Stack<Intersection> intersections = new Stack<Intersection>();
-            var res = GetDirections(start, end, ref intersections, 20);
+            var res = GetDirections(start, end, ref intersections, 200);
             stopwatch.Stop();
 
             Console.WriteLine($"Got directions in {stopwatch.ElapsedMilliseconds / 1000.0} s");
             Console.WriteLine($"{(res > 0 ? "Found directions!" : "No path found")}");
-            coordinates = new StreamWriter(File.Create(@"WaypointCoords.csv"));
+            coordinates = new StreamWriter(File.Create(@"C:\working\WaypointCoords.csv"));
             foreach (var i in intersections)
             {
                 Console.WriteLine($"{i.Location.Latitude}, {i.Location.Longitude} {i.Location.AssociatedWay?.RoadName ?? "IDK-the-road"}");
@@ -128,7 +129,7 @@ namespace MapApp
         }
 
         StreamWriter coordinates;
-         public double GetDirections(Intersection start, Intersection end, ref Stack<Intersection> subroute, int maxDepth, bool rough = false)
+        public double GetDirections(Intersection start, Intersection end, ref Stack<Intersection> subroute, int maxDepth)
         {
             if (maxDepth <= 0 || start?.Next == null)
             {
@@ -143,10 +144,16 @@ namespace MapApp
             {
                 return -1;
             }
-            else if (start.Next.Where(n => n.End != start).Count() == 1)
+            else if (start.BestPath != null)
+            {
+                subroute.Push(start);
+                double cost = GetDirections(start.BestPath.End, end, ref subroute, maxDepth - 1);
+                return cost < 0 ? -1 : start.BestPath.Cost + cost;
+            }
+            else if (start.Next.Where(n => n.End != start && !n.DeadEnd).Count() == 1)
             {
                 var path = start.Next.Where(n => n.End != start).FirstOrDefault();
-                double cost = GetDirections(path.End, end, ref subroute, maxDepth, rough);
+                double cost = GetDirections(path.End, end, ref subroute, maxDepth);
                 if (cost < 0)
                 {
                     return -1;
@@ -155,23 +162,25 @@ namespace MapApp
                 {
                     return path.Cost + cost;
                 }
-                
+
             }
             else
             {
                 subroute.Push(start);
                 start.AlreadyExplored = true;
-                var paths = start.Next.Where(n => n.End != start).OrderBy(p => Node.DistanceBetween(p.End.Location, end.Location));
+                var paths = start.Next.Where(n => n.End != start && !n.DeadEnd ).OrderBy(p => Node.DistanceBetween(p.End.Location, end.Location));
 
                 double bestValue = double.MaxValue;
                 Stack<Intersection> bestSubroute = null;
+                Path bestPath = null;
                 foreach (var path in paths)
                 {
                     Stack<Intersection> newSubroute = new Stack<Intersection>();
                     newSubroute.Push(path.End);
-                    double cost = GetDirections(path.End, end, ref newSubroute, maxDepth - 1, rough);
+                    double cost = GetDirections(path.End, end, ref newSubroute, maxDepth - 1);
                     if (cost < 0)
                     {
+                        path.DeadEnd = true;
                         // solution not found
                         continue;
                     }
@@ -179,6 +188,7 @@ namespace MapApp
                     {
                         bestValue = path.Cost + cost;
                         bestSubroute = newSubroute;
+                        bestPath = path;
                     }
                 }
                 start.AlreadyExplored = false;
@@ -187,11 +197,20 @@ namespace MapApp
                     return -1;
                 }
                 // copy best route onto this stack
-                while(bestSubroute.Count > 0)
+                start.BestPath = bestPath;
+                while (bestSubroute.Count > 0)
                 {
                     subroute.Push(bestSubroute.Pop());
                 }
                 return bestValue;
+            }
+        }
+
+        private void Cleanup()
+        {
+            foreach (var i in Intersections)
+            {
+                i.Value.BestPath = null;
             }
         }
 
@@ -261,7 +280,7 @@ namespace MapApp
             // make intersections of all duplicate points with way vectors for each.
             foreach (var way in Ways.Values)
             {
-                Way w = (Way)way;
+                Way w = way;
                 long first = w.Nodes.First();
                 long last = w.Nodes.Last();
 
@@ -272,12 +291,20 @@ namespace MapApp
 
                 foreach (long node in w.Nodes)
                 {
-                    
+
                     if (NodesUsedInWays.ContainsKey(node))
                     {
                         // duplicate! create an intersection.
-                        Nodes[node].AssociatedWay = w;
                         Intersection i = GetOrCreateIntersection(node);
+                        Way existingWay = Nodes[node].AssociatedWay;
+                        if (existingWay != null)
+                        {
+                            SplicePathAlongWay(existingWay, GetOrCreateIntersection(existingWay.GetStart()),
+                                i,
+                                GetOrCreateIntersection(existingWay.GetEnd()));
+                        }
+                        Nodes[node].AssociatedWay = w;
+
                         SplicePathAlongWay(w, start, i, end);
                     }
                     else
@@ -301,7 +328,11 @@ namespace MapApp
             double d;
             foreach (var n in Nodes)
             {
-                if (n.Value.AssociatedWay == null) continue;
+                if (n.Value.AssociatedWay == null)
+                {
+                    continue;
+                }
+
                 d = Node.DistanceBetween(n.Value, pos);
                 if (d < closestDist)
                 {
@@ -324,9 +355,11 @@ namespace MapApp
             }
             else
             {
-                Intersection i = new Intersection();
-                i.Location = Nodes[id];
-                i.NodeLocation = id;
+                Intersection i = new Intersection
+                {
+                    Location = Nodes[id],
+                    NodeLocation = id
+                };
                 Intersections.Add(id, i);
                 return i;
             }
@@ -472,7 +505,11 @@ namespace MapApp
         /// <returns></returns>
         public IEnumerable<long> EnumerateNodesForward(long start)
         {
-            if (!GoesForward) yield break;
+            if (!GoesForward)
+            {
+                yield break;
+            }
+
             for (int idx = Nodes.IndexOf(start); idx < Nodes.Count; idx++)
             {
                 yield return Nodes[idx];
@@ -486,7 +523,11 @@ namespace MapApp
         /// <returns></returns>
         public IEnumerable<long> EnumerateNodesBackwards(long start)
         {
-            if (!GoesBackward) yield break;
+            if (!GoesBackward)
+            {
+                yield break;
+            }
+
             for (int idx = Nodes.IndexOf(start); idx >= 0; idx--)
             {
                 yield return Nodes[idx];
@@ -499,8 +540,15 @@ namespace MapApp
             var endIndex = Nodes.IndexOf(end);
             int d = endIndex >= startIndex ? 1 : -1;
 
-            if (d > 0 && !GoesForward) yield break;
-            if (d < 0 && !GoesBackward) yield break;
+            if (d > 0 && !GoesForward)
+            {
+                yield break;
+            }
+
+            if (d < 0 && !GoesBackward)
+            {
+                yield break;
+            }
 
             for (int idx = startIndex; idx != endIndex + d; idx += d)
             {
@@ -517,6 +565,7 @@ namespace MapApp
     public class Intersection : EqualityComparer<Intersection>
     {
         public List<Path> Next = new List<Path>();
+        public Path BestPath = null;
         public Node Location;
         public long NodeLocation;
         public bool AlreadyExplored = false;
@@ -556,6 +605,7 @@ namespace MapApp
     public class Path : EqualityComparer<Path>
     {
         public Intersection End;
+        public bool DeadEnd = false;
         public double Cost;
 
         public override bool Equals([AllowNull] Path x, [AllowNull] Path y)
